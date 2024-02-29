@@ -10,6 +10,7 @@
 		"prepare": "husky install"
 	},
 	"dependencies": {
+		"@ckpack/vue-color": "^1.5.0",
 		"@vueuse/core": "^10.6.1",
 		"pinia": "^2.1.7",
 		"primeflex": "^3.3.1",

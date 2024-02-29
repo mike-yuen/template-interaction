@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, reactive, watchEffect } from 'vue';
+import { computed, reactive, ref, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';
+import { Chrome } from '@ckpack/vue-color';
 import Breadcrumb from '@/components/breadcrumb/Breadcrumb.vue';
 import Combination from '@/components/combination/Combination.vue';
 import Palette from '@/components/palette/Palette.vue';
@@ -16,10 +17,27 @@ const data = reactive<{
 	combination: ICombination;
 	relatedCombinations: IRelatedCombination[];
 }>({ combination: {} as ICombination, relatedCombinations: [] });
+const showAllRelatedCombinations = ref(false);
+const colors = ref('#194D33A8');
 
 const contrastFontColor = computed(() =>
 	getContrastingColor(data.combination.color.hex),
 );
+
+const filteredRelatedCombinations = computed(() =>
+	showAllRelatedCombinations.value
+		? data.relatedCombinations
+		: data.relatedCombinations.slice(0, 5),
+);
+
+const onChangeCombination = (data: { id: number }) => {
+	showAllRelatedCombinations.value = false;
+	router.push({ path: '/', query: { id: data.id } });
+};
+
+const seeMoreCombinations = () => {
+	showAllRelatedCombinations.value = true;
+};
 
 watchEffect(() => {
 	const combinationId = router.currentRoute.value.query?.id || undefined;
@@ -60,6 +78,8 @@ watchEffect(() => {
 			</div>
 		</div>
 
+		<Chrome v-model="colors" />
+
 		<div class="related-combinations-container">
 			<div class="related-combinations-heading">
 				<h2>Related Combinations</h2>
@@ -68,20 +88,28 @@ watchEffect(() => {
 			<div class="palette-container">
 				<div class="grid palette-gutter">
 					<div
-						v-for="relatedCombination in data.relatedCombinations"
+						v-for="relatedCombination in filteredRelatedCombinations"
 						:key="relatedCombination.id"
 						class="col-6"
 					>
 						<Palette
 							:combination="relatedCombination"
-							@onSelectCombination="
-								({ data }) =>
-									router.push({
-										path: '/',
-										query: { id: data.id },
-									})
-							"
+							@onSelectCombination="onChangeCombination"
 						/>
+					</div>
+					<div
+						v-if="
+							!showAllRelatedCombinations &&
+							data.relatedCombinations.length > 5
+						"
+						class="col-6"
+					>
+						<button
+							class="palette-see-more"
+							@click="seeMoreCombinations"
+						>
+							See more combinations
+						</button>
 					</div>
 				</div>
 			</div>
@@ -164,6 +192,18 @@ watchEffect(() => {
 				padding: 1rem;
 			}
 		}
+
+		.palette-see-more {
+			height: 4.5rem;
+			width: 100%;
+			border-radius: 4px;
+			border: 0;
+			font-size: 1rem;
+			margin: 0;
+			padding: 6px 16px;
+			background-color: rgba(0, 0, 0, 0.1);
+			cursor: pointer;
+		}
 	}
 }
 
@@ -186,10 +226,13 @@ watchEffect(() => {
 		}
 
 		button {
+			font-size: 0.875rem;
+			line-height: 1.5;
+			height: 2.5rem;
 			border: 0;
 			border-radius: 0.25rem;
 			margin: 0;
-			margin: 2px 0;
+			margin: 2rem 0;
 			padding: 0.375rem 1rem;
 			cursor: pointer;
 		}

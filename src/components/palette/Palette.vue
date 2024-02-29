@@ -1,13 +1,33 @@
 <script setup lang="ts">
 import { IRelatedCombination } from '@/services/api';
+import { ref, watch } from 'vue';
+
 const props = defineProps<{ combination: IRelatedCombination }>();
 const emits = defineEmits<{
 	(e: 'onSelectCombination', data: { id: number }): void;
 }>();
 
+const liked = ref(false);
+const likes = ref(0);
+
 const onSelectCombination = () => {
 	emits('onSelectCombination', { data: { id: props.combination.id } });
 };
+
+const onToggleLike = (e) => {
+	e.stopPropagation();
+	liked.value = !liked.value;
+	liked.value ? likes.value++ : likes.value--;
+};
+
+watch(
+	() => props.combination.id,
+	() => {
+		liked.value = props.combination.liked;
+		likes.value = props.combination.likes;
+	},
+	{ immediate: true },
+);
 </script>
 
 <template>
@@ -22,9 +42,12 @@ const onSelectCombination = () => {
 
 		<div class="palette-info">
 			<div class="palette-name">{{ props.combination.name }}</div>
-			<button class="palette-like">
-				<i class="pi pi-heart" />
-				<span>{{ props.combination.likes }}</span>
+			<button class="palette-like" @click="onToggleLike">
+				<i
+					class="pi"
+					:class="[liked ? ' pi-heart-fill' : ' pi-heart']"
+				/>
+				<span>{{ likes }}</span>
 			</button>
 		</div></a
 	>
@@ -93,6 +116,10 @@ const onSelectCombination = () => {
 
 			i {
 				font-size: 1.125rem;
+			}
+
+			.pi-heart-fill {
+				color: #ff525a;
 			}
 		}
 	}

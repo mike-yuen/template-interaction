@@ -3,6 +3,8 @@ import { ICombination } from '@/services/api';
 import { reactive, ref, watch } from 'vue';
 
 const props = defineProps<{ combination: ICombination }>();
+const liked = ref(false);
+const likes = ref(0);
 const colors = reactive<{ slug: string; hex: string; name: string }[]>([]);
 const copiedHex = ref<string | null>(null);
 
@@ -18,9 +20,19 @@ const copyHex = async (color: { hex: string; slug: string }) => {
 	}
 };
 
+const onToggleLike = () => {
+	liked.value = !liked.value;
+	liked.value ? likes.value++ : likes.value--;
+};
+
 watch(
 	() => props.combination.id,
-	() => Object.assign(colors, props.combination.colors),
+	() => {
+		console.log('watch: ', colors, props.combination.colors);
+		liked.value = props.combination.liked;
+		likes.value = props.combination.likes;
+		Object.assign(colors, props.combination.colors);
+	},
 	{ immediate: true },
 );
 </script>
@@ -33,9 +45,12 @@ watch(
 				:alt="props.combination.featuredImage.alt"
 			/>
 
-			<button class="combination-like">
-				<i class="pi pi-heart" />
-				<span>{{ props.combination.likes }}</span>
+			<button class="combination-like" @click="onToggleLike">
+				<i
+					class="pi"
+					:class="[liked ? ' pi-heart-fill' : ' pi-heart']"
+				/>
+				<span>{{ likes }}</span>
 			</button>
 		</div>
 
@@ -43,7 +58,7 @@ watch(
 			<div class="palette-container">
 				<button
 					v-for="color in colors"
-					:key="color.slug"
+					:key="`${color.slug}-${color.hex}`"
 					:style="{ backgroundColor: color.hex }"
 					@click="() => copyHex(color)"
 				>
@@ -53,7 +68,10 @@ watch(
 			</div>
 
 			<div class="palette-text">
-				<div v-for="color in colors" :key="color.slug">
+				<div
+					v-for="color in colors"
+					:key="`${color.slug}-${color.hex}`"
+				>
 					<span class="">{{ color.name }}</span>
 					<p class="">{{ color.hex }}</p>
 				</div>
@@ -99,6 +117,10 @@ watch(
 
 			i {
 				font-size: 1.125rem;
+			}
+
+			.pi-heart-fill {
+				color: #ff525a;
 			}
 		}
 	}
