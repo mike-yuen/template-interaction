@@ -1,0 +1,15 @@
+{
+  "src/**/*.ts": [
+    "eslint",
+    "prettier --write"
+  ],
+  "src/**/*.html": [
+    "eslint",
+    "prettier --write"
+  ],
+  "src/**/*.vue": [
+    "eslint",
+    "prettier --write"
+  ],
+  "src/**/*.scss": "prettier --write"
+}
