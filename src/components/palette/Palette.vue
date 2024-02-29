@@ -1,19 +1,30 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { IRelatedCombination } from '@/services/api';
+const props = defineProps<{ combination: IRelatedCombination }>();
+const emits = defineEmits<{
+	(e: 'onSelectCombination', data: { id: number }): void;
+}>();
+
+const onSelectCombination = () => {
+	emits('onSelectCombination', { data: { id: props.combination.id } });
+};
+</script>
 
 <template>
-	<a class="palette">
+	<a class="palette" @click="onSelectCombination">
 		<span class="palette-colors">
-			<span style="background-color: rgb(249, 204, 211)"></span>
-			<span style="background-color: rgb(170, 25, 69)"></span>
-			<span style="background-color: rgb(241, 206, 212)"></span>
-			<span style="background-color: rgb(57, 19, 6)"></span>
+			<span
+				v-for="color in props.combination.colors"
+				:key="color"
+				:style="{ backgroundColor: color }"
+			></span>
 		</span>
 
 		<div class="palette-info">
-			<div class="palette-name">Trees in Bloom</div>
+			<div class="palette-name">{{ props.combination.name }}</div>
 			<button class="palette-like">
 				<i class="pi pi-heart" />
-				<span>5477</span>
+				<span>{{ props.combination.likes }}</span>
 			</button>
 		</div></a
 	>

@@ -1,9 +1,12 @@
 <script setup lang="ts">
-const props = defineProps<{ combination: string }>();
+const props = defineProps<{ combination: string; fontColor: string }>();
 </script>
 
 <template>
-	<ul class="breadcrumb">
+	<ul
+		class="breadcrumb"
+		:style="{ '--breadcrumb-font-color': props.fontColor }"
+	>
 		<li class="breadcrumb-item">
 			<span class="breadcrumb-text">Colors</span>
 			<i class="pi pi-angle-right" />
@@ -27,11 +30,15 @@ const props = defineProps<{ combination: string }>();
 	.breadcrumb-item {
 		display: flex;
 		align-items: center;
-		color: rgba(0, 0, 0, 0.5);
+		color: var(--breadcrumb-font-color);
 		font-size: 0.875rem;
 
+		&:last-of-type {
+			opacity: 0.75;
+		}
+
 		.breadcrumb-text {
-			color: rgba(0, 0, 0);
+			color: var(--breadcrumb-font-color);
 		}
 
 		i {

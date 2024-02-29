@@ -1,23 +1,62 @@
 <script setup lang="ts">
+import { computed, reactive, watchEffect } from 'vue';
+import { useRouter } from 'vue-router';
 import Breadcrumb from '@/components/breadcrumb/Breadcrumb.vue';
 import Combination from '@/components/combination/Combination.vue';
 import Palette from '@/components/palette/Palette.vue';
+import {
+	ICombination,
+	IRelatedCombination,
+	getCombination,
+} from '@/services/api';
+import { getContrastingColor } from '@/utils';
+
+const router = useRouter();
+const data = reactive<{
+	combination: ICombination;
+	relatedCombinations: IRelatedCombination[];
+}>({ combination: {} as ICombination, relatedCombinations: [] });
+
+const contrastFontColor = computed(() =>
+	getContrastingColor(data.combination.color.hex),
+);
+
+watchEffect(() => {
+	const combinationId = router.currentRoute.value.query?.id || undefined;
+	if (!Array.isArray(combinationId)) {
+		const mock = getCombination(combinationId);
+		if (mock) {
+			const { combination, relatedCombinations } = mock;
+			data.combination = combination;
+			data.relatedCombinations = relatedCombinations;
+		}
+	}
+});
 </script>
 
 <template>
 	<main>
 		<div class="combination-main">
-			<div class="combination-bg" style="background-color: #f7cac9"></div>
+			<div
+				class="combination-bg"
+				:style="{ backgroundColor: data.combination.color.hex }"
+			></div>
 			<div class="combination-container">
-				<Breadcrumb combination="Pastel Blonde" />
+				<Breadcrumb
+					:combination="data.combination.name"
+					:fontColor="contrastFontColor"
+				/>
 
-				<h1 class="combination-heading">
-					Pastel Blonde
+				<h1
+					class="combination-heading"
+					:style="{ color: contrastFontColor }"
+				>
+					{{ data.combination.name }}
 					<br />
 					color combination
 				</h1>
 
-				<Combination />
+				<Combination :combination="data.combination" />
 			</div>
 		</div>
 
@@ -28,11 +67,22 @@ import Palette from '@/components/palette/Palette.vue';
 
 			<div class="palette-container">
 				<div class="grid palette-gutter">
-					<div class="col-6"><Palette /></div>
-					<div class="col-6"><Palette /></div>
-					<div class="col-6"><Palette /></div>
-					<div class="col-6"><Palette /></div>
-					<div class="col-6"><Palette /></div>
+					<div
+						v-for="relatedCombination in data.relatedCombinations"
+						:key="relatedCombination.id"
+						class="col-6"
+					>
+						<Palette
+							:combination="relatedCombination"
+							@onSelectCombination="
+								({ data }) =>
+									router.push({
+										path: '/',
+										query: { id: data.id },
+									})
+							"
+						/>
+					</div>
 				</div>
 			</div>
 		</div>

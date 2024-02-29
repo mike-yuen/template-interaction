@@ -8,12 +8,8 @@ export const getContrastingColor = (background: string) => {
 	const b = parseInt(cleanBackground.substring(4, 6), 16);
 
 	// Calculate the relative luminance of the background color
-	const relativeLuminance = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
-
-	// Calculate the contrast ratio with black (#000) and white (#FFF)
-	const contrastWithBlack = (relativeLuminance + 0.05) / 0.05;
-	const contrastWithWhite = 1.05 / (relativeLuminance + 0.05);
+	const brightness = Math.round((r * 299 + g * 587 + b * 114) / 1000);
 
 	// Return the color with higher contrast ratio
-	return contrastWithBlack > contrastWithWhite ? '#000' : '#FFF';
+	return brightness > 125 ? '#000' : '#FFF';
 };

@@ -1,72 +1,59 @@
 <script setup lang="ts">
-const combination = {
-	liked: false,
-	id: 719,
-	slug: 'pastel-blonde',
-	color: {
-		slug: 'rose-quartz',
-		hex: '#F7CAC9',
-		name: 'Rose Quartz',
-	},
-	featuredImage: {
-		alt: '',
-		url: 'RoseQuartz.png',
-	},
-	name: 'Pastel Blonde',
-	likes: 10953,
-	colors: [
-		{
-			slug: 'yellow',
-			hex: '#fff4bd',
-			name: 'Yellow',
-		},
-		{
-			slug: 'rose-quartz',
-			hex: '#f4b9b8',
-			name: 'Rose Quartz',
-		},
-		{
-			slug: 'spearmint',
-			hex: '#85d2d0',
-			name: 'Spearmint',
-		},
-		{
-			slug: 'purple',
-			hex: '#887bb0',
-			name: 'Purple',
-		},
-	],
+import { ICombination } from '@/services/api';
+import { reactive, ref, watch } from 'vue';
+
+const props = defineProps<{ combination: ICombination }>();
+const colors = reactive<{ slug: string; hex: string; name: string }[]>([]);
+const copiedHex = ref<string | null>(null);
+
+const copyHex = async (color: { hex: string; slug: string }) => {
+	try {
+		await navigator.clipboard.writeText(color.hex);
+		copiedHex.value = color.slug;
+		setTimeout(() => {
+			copiedHex.value = null;
+		}, 2000);
+	} catch (e) {
+		alert('Cannot copy');
+	}
 };
+
+watch(
+	() => props.combination.id,
+	() => Object.assign(colors, props.combination.colors),
+	{ immediate: true },
+);
 </script>
 
 <template>
 	<div class="combination">
 		<div class="combination-image">
 			<img
-				:src="`/images/thumbnail/${combination.featuredImage.url}`"
-				:alt="combination.featuredImage.alt"
+				:src="`/images/thumbnail/${props.combination.featuredImage.url}`"
+				:alt="props.combination.featuredImage.alt"
 			/>
 
 			<button class="combination-like">
 				<i class="pi pi-heart" />
-				<span>{{ combination.likes }}</span>
+				<span>{{ props.combination.likes }}</span>
 			</button>
 		</div>
 
 		<div class="palette">
 			<div class="palette-container">
 				<button
-					v-for="color in combination.colors"
+					v-for="color in colors"
 					:key="color.slug"
 					:style="{ backgroundColor: color.hex }"
+					@click="() => copyHex(color)"
 				>
-					<span class="copy-hex">Copy</span>
-					<i class="pi pi-check" />
+					<i v-if="copiedHex === color.slug" class="pi pi-check" />
+					<span v-else class="copy-hex">Copy</span>
 				</button>
 			</div>
 
 			<div class="palette-text">
-				<div v-for="color in combination.colors" :key="color.slug">
+				<div v-for="color in colors" :key="color.slug">
 					<span class="">{{ color.name }}</span>
 					<p class="">{{ color.hex }}</p>
 				</div>
