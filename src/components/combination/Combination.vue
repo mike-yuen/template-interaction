@@ -18,7 +18,7 @@ const copiedHex = ref<string | null>(null);
 const onCopyHex = async (color: { hex: string; slug: string }) => {
 	try {
 		await navigator.clipboard.writeText(color.hex);
-		copiedHex.value = color.slug;
+		copiedHex.value = `${color.slug}-${color.hex}`;
 		setTimeout(() => {
 			copiedHex.value = null;
 		}, 2000);
@@ -90,7 +90,10 @@ watch(
 					}"
 					@click="() => onCopyHex(color)"
 				>
-					<i v-if="copiedHex === color.slug" class="pi pi-check" />
+					<i
+						v-if="copiedHex === `${color.slug}-${color.hex}`"
+						class="pi pi-check"
+					/>
 					<span v-else class="copy-hex">Copy</span>
 				</button>
 			</div>
