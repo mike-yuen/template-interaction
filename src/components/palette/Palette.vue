@@ -11,10 +11,10 @@ const liked = ref(false);
 const likes = ref(0);
 
 const onSelectCombination = () => {
-	emits('onSelectCombination', { data: { id: props.combination.id } });
+	emits('onSelectCombination', { id: props.combination.id });
 };
 
-const onToggleLike = (e) => {
+const onToggleLike = (e: any) => {
 	e.stopPropagation();
 	liked.value = !liked.value;
 	liked.value ? likes.value++ : likes.value--;

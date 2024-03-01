@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';
-import { Chrome } from '@ckpack/vue-color';
 import Breadcrumb from '@/components/breadcrumb/Breadcrumb.vue';
 import Combination from '@/components/combination/Combination.vue';
 import Palette from '@/components/palette/Palette.vue';
@@ -18,7 +17,6 @@ const data = reactive<{
 	relatedCombinations: IRelatedCombination[];
 }>({ combination: {} as ICombination, relatedCombinations: [] });
 const showAllRelatedCombinations = ref(false);
-const colors = ref('#194D33A8');
 
 const contrastFontColor = computed(() =>
 	getContrastingColor(data.combination.color.hex),
@@ -77,8 +75,6 @@ watchEffect(() => {
 				<Combination :combination="data.combination" />
 			</div>
 		</div>
-
-		<Chrome v-model="colors" />
 
 		<div class="related-combinations-container">
 			<div class="related-combinations-heading">

@@ -1,14 +1,21 @@
 <script setup lang="ts">
-import { ICombination } from '@/services/api';
 import { reactive, ref, watch } from 'vue';
+import { Chrome, Payload } from '@ckpack/vue-color';
+import { onClickOutside } from '@vueuse/core';
+import { ICombination } from '@/services/api';
+import { getContrastingColor } from '@/utils';
 
 const props = defineProps<{ combination: ICombination }>();
+
+const colorPickerTarget = ref(null);
 const liked = ref(false);
 const likes = ref(0);
-const colors = reactive<{ slug: string; hex: string; name: string }[]>([]);
+const colors = reactive<
+	{ showPicker: boolean; slug: string; hex: string; name: string }[]
+>([]);
 const copiedHex = ref<string | null>(null);
 
-const copyHex = async (color: { hex: string; slug: string }) => {
+const onCopyHex = async (color: { hex: string; slug: string }) => {
 	try {
 		await navigator.clipboard.writeText(color.hex);
 		copiedHex.value = color.slug;
@@ -25,13 +32,31 @@ const onToggleLike = () => {
 	liked.value ? likes.value++ : likes.value--;
 };
 
+const onShowColorPicker = (index: number) => {
+	colors[index].showPicker = true;
+};
+
+const onUpdateColor = (pickedColors: Payload, index: number) => {
+	colors[index].hex = pickedColors.hex;
+};
+
+onClickOutside(colorPickerTarget, () => {
+	colors.map((color) => (color.showPicker = false));
+});
+
 watch(
 	() => props.combination.id,
 	() => {
 		console.log('watch: ', colors, props.combination.colors);
 		liked.value = props.combination.liked;
 		likes.value = props.combination.likes;
-		Object.assign(colors, props.combination.colors);
+		Object.assign(
+			colors,
+			props.combination.colors.map((color) => ({
+				showPicker: false,
+				...color,
+			})),
+		);
 	},
 	{ immediate: true },
 );
@@ -59,8 +84,11 @@ watch(
 				<button
 					v-for="color in colors"
 					:key="`${color.slug}-${color.hex}`"
-					:style="{ backgroundColor: color.hex }"
-					@click="() => copyHex(color)"
+					:style="{
+						'--palette-font-color': getContrastingColor(color.hex),
+						backgroundColor: color.hex,
+					}"
+					@click="() => onCopyHex(color)"
 				>
 					<i v-if="copiedHex === color.slug" class="pi pi-check" />
 					<span v-else class="copy-hex">Copy</span>
@@ -69,11 +97,23 @@ watch(
 
 			<div class="palette-text">
 				<div
-					v-for="color in colors"
+					v-for="(color, index) in colors"
 					:key="`${color.slug}-${color.hex}`"
 				>
-					<span class="">{{ color.name }}</span>
-					<p class="">{{ color.hex }}</p>
+					<span @click="() => onShowColorPicker(index)">{{
+						color.name
+					}}</span>
+					<p>{{ color.hex }}</p>
+					<Chrome
+						ref="colorPickerTarget"
+						v-show="color.showPicker"
+						:modelValue="color.hex"
+						@update:modelValue="
+							(colors) => onUpdateColor(colors, index)
+						"
+						disableAlpha
+						class="color-picker"
+					/>
 				</div>
 			</div>
 		</div>
@@ -139,6 +179,7 @@ watch(
 				justify-content: center;
 				flex: 1;
 				border: 0;
+				color: var(--palette-font-color);
 				cursor: pointer;
 
 				&:hover {
@@ -161,11 +202,13 @@ watch(
 		}
 
 		.palette-text {
+			position: relative;
 			display: flex;
 			margin-top: 1.5rem;
 			text-align: center;
 
 			& > div {
+				position: relative;
 				display: flex;
 				flex-direction: column;
 				align-items: center;
@@ -191,6 +234,13 @@ watch(
 				}
 			}
 		}
+	}
+
+	.color-picker {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		z-index: 1;
 	}
 }
 </style>
